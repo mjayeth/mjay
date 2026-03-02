@@ -1,0 +1,1917 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ATLAS Preview</title>
+    <style>
+      :root {
+        --bg: #060606;
+        --panel: #0a0a0a;
+        --text: #f3f3f3;
+        --muted: #9a9a9a;
+        --line: #1f1f1f;
+        --brand: #f3f3f3;
+        --brand-2: #d5d5d5;
+        --accent: #f3f3f3;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Avenir Next", "Avenir", "Segoe UI", sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+
+      .container { width: min(1460px, calc(100% - 1.5rem)); margin: 0 auto; }
+      .header {
+        position: sticky; top: 0; z-index: 30;
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(10px);
+        background: rgba(6, 6, 6, 0.92);
+      }
+      .header-row {
+        height: 62px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      .brand {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+      }
+      .brand img {
+        display: block;
+        height: 66px;
+        width: auto;
+      }
+
+      .nav {
+        display: flex;
+        gap: 1.8rem;
+        align-items: center;
+        margin-left: auto;
+      }
+      .nav button {
+        border: 0;
+        background: transparent;
+        color: #9a9a9a;
+        cursor: pointer;
+        font-size: 0.86rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        height: auto;
+        padding: 0;
+        font-weight: 600;
+      }
+      .nav button.active, .nav button:hover { color: #f3f3f3; }
+
+      .actions { display: flex; gap: 0.6rem; align-items: center; }
+      .btn {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 0.62rem 1rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+      .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(22, 56, 95, 0.16); }
+      .btn.primary { background: var(--brand); color: #ffffff; border-color: var(--brand); }
+      .btn.primary:hover { background: var(--brand-2); }
+
+      .page-wrap { min-height: calc(100vh - 76px); }
+      .page {
+        padding: 2rem 0 3.2rem;
+        opacity: 0;
+        transform: translateY(8px);
+        animation: reveal 220ms ease-out forwards;
+      }
+      @keyframes reveal {
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: linear-gradient(160deg, #2f6faa 15%, #2f6faa 56%, #3d7fbb 100%);
+        border-radius: 32px;
+        padding: 2.2rem;
+      }
+      .hero-bg-video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.22;
+        filter: saturate(0.7) contrast(0.94) brightness(0.8);
+        pointer-events: none;
+      }
+      .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 20% 10%, rgba(31, 88, 145, 0.38), rgba(31, 88, 145, 0) 42%),
+          linear-gradient(180deg, rgba(26, 77, 128, 0.26), rgba(26, 77, 128, 0.42));
+        pointer-events: none;
+      }
+      .hero-content {
+        position: relative;
+        z-index: 1;
+        color: #ffffff;
+      }
+      .hero-center { text-align: center; max-width: 900px; margin: 0 auto; }
+      .badge {
+        display: inline-flex; align-items: center; gap: 0.45rem;
+        border: 1px solid var(--line); border-radius: 999px;
+        padding: 0.35rem 0.7rem; font-size: 0.76rem; color: #ecf5ff;
+        background: rgba(36, 93, 146, 0.55);
+      }
+      .dot { width: 9px; height: 9px; border-radius: 99px; background: var(--accent); }
+      h1 { font-size: clamp(2rem, 5vw, 3.8rem); line-height: 1.1; letter-spacing: -0.02em; margin: 1rem 0 0; }
+      .lead { color: #eaf3ff; line-height: 1.7; max-width: 820px; margin: 1rem auto 0; }
+
+      .stack-row { margin-top: 1.3rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
+      .proof { margin-top: 1.8rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; color: #d9e9fa; font-size: 0.9rem; }
+      .proof b { color: #ffffff; }
+      .trusted-wrap { margin-top: 2.4rem; }
+      .trusted-wrap small {
+        display: block;
+        margin-bottom: 0.7rem;
+        text-transform: uppercase;
+        color: #8fb0d3;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+        font-size: 0.72rem;
+      }
+      .marquee {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: #edf6ff;
+        mask-image: linear-gradient(to right, transparent, black 9%, black 91%, transparent);
+        -webkit-mask-image: linear-gradient(to right, transparent, black 9%, black 91%, transparent);
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: pan-y;
+      }
+      .marquee.dragging { cursor: grabbing; }
+      .marquee-track {
+        width: max-content;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.1rem 0.8rem;
+      }
+      .logo-pill {
+        flex: 0 0 auto;
+        min-width: 220px;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 1.2rem;
+        border-radius: 13px;
+        border: 1px solid #6c98c2;
+        background: rgba(245, 251, 255, 0.98);
+      }
+      .logo-pill img {
+        display: block;
+        max-width: 190px;
+        max-height: 44px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+      .scroll-story {
+        margin-top: 1.6rem;
+        display: grid;
+        gap: 1rem;
+      }
+      .story-pin {
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: linear-gradient(165deg, #f6fbff, #edf6ff);
+        padding: 1.2rem;
+      }
+      .story-pin h2 {
+        margin: 0;
+        font-size: clamp(1.45rem, 3.2vw, 2rem);
+        letter-spacing: -0.02em;
+      }
+      .story-pin p {
+        margin: 0.55rem 0 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+      .story-track {
+        display: grid;
+        gap: 0.85rem;
+      }
+      .story-step {
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: #f8fbff;
+        padding: 1rem;
+      }
+      .story-step b {
+        display: inline-block;
+        color: #9fd0ff;
+        font-size: 0.78rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .story-step h3 {
+        margin: 0.48rem 0 0;
+        font-size: 1.15rem;
+      }
+      .story-step p {
+        margin: 0.5rem 0 0;
+        color: var(--muted);
+        line-height: 1.62;
+      }
+      .unfold-zone {
+        margin-top: 1.2rem;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: #f7fbff;
+        padding: 1rem;
+      }
+      .service-block {
+        margin-top: 2.8rem;
+        border: 1px solid #c9ddf0;
+        border-radius: 24px;
+        background: linear-gradient(180deg, #f8fcff, #eef6ff);
+        padding: 1.25rem;
+      }
+      .service-block .unfold-head h3 {
+        font-size: clamp(1.35rem, 3vw, 1.85rem);
+      }
+      .service-block .unfold-head p {
+        margin: 0.62rem 0 0;
+        max-width: 780px;
+        color: #4f7398;
+        line-height: 1.62;
+      }
+      .core-stage {
+        border-color: #c4dbf1;
+        background: linear-gradient(180deg, #f7fbff, #edf6ff);
+      }
+      .kbw-stage {
+        border: 1px solid #b8d5ee;
+        background:
+          radial-gradient(circle at 100% 0%, rgba(146, 190, 233, 0.28), rgba(146, 190, 233, 0) 42%),
+          linear-gradient(180deg, #f1f8ff, #e9f3ff);
+        padding: 1.2rem;
+      }
+      .source-stage {
+        padding: 1.2rem;
+        background:
+          radial-gradient(circle at 10% 0%, rgba(72, 141, 212, 0.14), rgba(72, 141, 212, 0) 42%),
+          radial-gradient(circle at 100% 100%, rgba(34, 99, 168, 0.16), rgba(34, 99, 168, 0) 44%),
+          rgba(5, 28, 56, 0.8);
+      }
+      .unfold-head small {
+        text-transform: uppercase;
+        color: #8fb0d3;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+        font-size: 0.72rem;
+      }
+      .unfold-head h3 {
+        margin: 0.42rem 0 0;
+        font-size: 1.28rem;
+      }
+      .source-stage .unfold-head p {
+        margin: 0.62rem 0 0;
+        max-width: 760px;
+        color: #4f7398;
+        line-height: 1.65;
+      }
+      .core-subtitle {
+        margin: 0;
+        color: #b9d7f5;
+        letter-spacing: 0.08em;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        font-weight: 700;
+      }
+      .unfold-cards {
+        margin-top: 0.85rem;
+        display: grid;
+        gap: 0.7rem;
+      }
+      .source-stage .unfold-cards {
+        margin-top: 1.1rem;
+        gap: 0.95rem;
+      }
+      .asset-card {
+        border: 1px solid #cadef1;
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 0.8rem 0.9rem;
+      }
+      .source-stage .asset-card {
+        padding: 1rem 1.05rem;
+        min-height: 142px;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(160deg, #ffffff, #f3f9ff);
+      }
+      .source-stage .asset-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 3px;
+        width: 100%;
+        background: linear-gradient(90deg, #51a8ff, rgba(81, 168, 255, 0.2));
+      }
+      .asset-kicker {
+        display: inline-flex;
+        margin-bottom: 0.55rem;
+        border: 1px solid #b8d2ea;
+        border-radius: 999px;
+        padding: 0.18rem 0.5rem;
+        font-size: 0.69rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #4c739a;
+      }
+      .asset-card h4 {
+        margin: 0;
+        font-size: 0.97rem;
+      }
+      .asset-card p {
+        margin: 0.35rem 0 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+        line-height: 1.55;
+      }
+      .reveal {
+        opacity: 0;
+        transform: translateY(22px);
+        transition: opacity 520ms ease, transform 520ms ease;
+      }
+      .reveal.inview {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .unfold-cards .asset-card {
+        transform: translateY(18px) scale(0.985);
+        opacity: 0;
+        transition: transform 520ms ease, opacity 520ms ease;
+      }
+      .unfold-cards.inview .asset-card {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      .unfold-cards.inview .asset-card:nth-child(2) { transition-delay: 90ms; }
+      .unfold-cards.inview .asset-card:nth-child(3) { transition-delay: 170ms; }
+      .unfold-cards.inview .asset-card:nth-child(4) { transition-delay: 250ms; }
+      .unfold-cards.inview .asset-card:nth-child(5) { transition-delay: 330ms; }
+      .unfold-cards.inview .asset-card:nth-child(6) { transition-delay: 410ms; }
+
+      .grid { display: grid; gap: 0.9rem; margin-top: 1rem; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .grid-4 { grid-template-columns: 1fr; }
+      .card {
+        border: 1px solid var(--line); border-radius: 24px; background: #ffffff;
+        padding: 1.1rem; box-shadow: 0 8px 28px rgba(3, 12, 26, 0.32);
+      }
+      .card h3 { margin: 0; font-size: 1rem; }
+      .card p { margin: 0.55rem 0 0; color: var(--muted); line-height: 1.55; font-size: 0.9rem; }
+      .tag { display: inline-block; border: 1px solid #b8d4ed; border-radius: 999px; padding: 0.2rem 0.55rem; font-size: 0.7rem; color: #2f679c; background: #eef6ff; font-weight: 600; }
+      .kbw-visual {
+        margin: 0.9rem 0 1rem;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        overflow: hidden;
+        background: #f5faff;
+      }
+      .kbw-visual img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .format-section {
+        margin-top: 3rem;
+        border-radius: 26px;
+        border: 1px solid var(--line);
+        overflow: hidden;
+      }
+      .format-section.white {
+        background: #ffffff;
+      }
+      .format-section.brand {
+        background: linear-gradient(165deg, #2f6faa, #255f95);
+        border-color: #3f7bb2;
+      }
+      .format-head {
+        display: grid;
+        gap: 0.8rem;
+        padding: 1.4rem 1.4rem 0.6rem;
+      }
+      .format-eyebrow {
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.11em;
+        font-weight: 800;
+        margin: 0 0 0.15rem;
+      }
+      .format-section.white .format-eyebrow { color: #6e95bb; }
+      .format-section.brand .format-eyebrow { color: rgba(232, 243, 255, 0.78); }
+      .format-title {
+        margin: 0;
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        letter-spacing: -0.02em;
+      }
+      .format-section.brand .format-title { color: #f7fbff; }
+      .format-copy {
+        margin: 0;
+        max-width: 820px;
+        line-height: 1.65;
+      }
+      .format-section.white .format-copy { color: var(--muted); }
+      .format-section.brand .format-copy { color: rgba(236, 245, 255, 0.9); }
+      .format-body {
+        padding: 0.95rem 1.4rem 1.4rem;
+      }
+      .format-grid {
+        display: grid;
+        gap: 0.9rem;
+      }
+      .format-grid.two { grid-template-columns: 1fr; }
+      .format-grid.four { grid-template-columns: 1fr; }
+      .format-card {
+        border-radius: 18px;
+        padding: 1rem;
+      }
+      .format-section.white .format-card {
+        border: 1px solid #d3e4f3;
+        background: #f8fbff;
+      }
+      .format-section.brand .format-card {
+        border: 1px solid rgba(188, 217, 245, 0.48);
+        background: rgba(22, 79, 130, 0.72);
+        backdrop-filter: blur(2px);
+      }
+      .format-section.brand .format-card h4,
+      .format-section.brand .format-card p,
+      .format-section.brand .format-card .tag {
+        color: #eef6ff;
+      }
+      .format-section.brand .format-card p {
+        color: #dcecff;
+      }
+      .format-section.brand .format-card .tag {
+        border-color: rgba(221, 238, 255, 0.56);
+        background: rgba(236, 245, 255, 0.16);
+      }
+      .format-card h4 {
+        margin: 0;
+        font-size: 1rem;
+      }
+      .format-card p {
+        margin: 0.45rem 0 0;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+      .format-band {
+        margin-top: 1rem;
+        border-top: 1px solid rgba(214, 230, 246, 0.32);
+        padding-top: 1rem;
+      }
+      .format-kbw-image {
+        margin-top: 1rem;
+        border: 1px solid #d1e3f3;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #f5faff;
+      }
+      .format-kbw-image img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .ws-hero {
+        margin-top: 1.2rem;
+        border: 1px solid #d5e5f3;
+        border-radius: 30px;
+        background: linear-gradient(180deg, #ffffff, #f4f9ff);
+        padding: 2rem 1.4rem;
+      }
+      .ws-kicker {
+        margin: 0;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #6b8fb2;
+        font-weight: 700;
+      }
+      .ws-title {
+        margin: 0.8rem 0 0;
+        font-size: clamp(2.2rem, 7.4vw, 5.4rem);
+        line-height: 0.97;
+        letter-spacing: -0.03em;
+        color: #1f4f7f;
+      }
+      .ws-sub {
+        margin: 1.05rem 0 0;
+        max-width: 820px;
+        color: #567a9f;
+        line-height: 1.65;
+        font-size: clamp(0.98rem, 1.45vw, 1.1rem);
+      }
+      .ws-trusted {
+        margin-top: 2rem;
+      }
+      .ws-trusted h3 {
+        margin: 0;
+        font-size: clamp(1.1rem, 2vw, 1.4rem);
+        letter-spacing: -0.01em;
+      }
+      .ws-section {
+        margin-top: 3.3rem;
+      }
+      .ws-section-head {
+        margin: 0 0 1rem;
+      }
+      .ws-section-head h3 {
+        margin: 0;
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        letter-spacing: -0.02em;
+      }
+      .ws-section-head p {
+        margin: 0.6rem 0 0;
+        max-width: 850px;
+        color: #5a7ea4;
+        line-height: 1.65;
+      }
+      .ws-block {
+        border: 1px solid #d2e4f3;
+        border-radius: 26px;
+        background: #ffffff;
+        padding: 1.2rem;
+      }
+      .ws-block.brand {
+        border-color: #3f7ab0;
+        background: linear-gradient(165deg, #2f6faa, #295f92);
+      }
+      .ws-block.brand .ws-section-head h3,
+      .ws-block.brand .ws-section-head p,
+      .ws-block.brand .ws-tagline {
+        color: #f4f9ff;
+      }
+      .ws-grid {
+        display: grid;
+        gap: 0.85rem;
+      }
+      .ws-grid.two { grid-template-columns: 1fr; }
+      .ws-grid.four { grid-template-columns: 1fr; }
+      .ws-card {
+        border: 1px solid #d8e7f5;
+        border-radius: 18px;
+        background: #f8fbff;
+        padding: 1rem;
+      }
+      .ws-block.brand .ws-card {
+        border-color: rgba(214, 232, 249, 0.38);
+        background: rgba(14, 63, 108, 0.34);
+      }
+      .ws-card h4 {
+        margin: 0;
+        font-size: 1rem;
+        letter-spacing: -0.01em;
+      }
+      .ws-card p {
+        margin: 0.42rem 0 0;
+        color: #5f82a6;
+        line-height: 1.6;
+      }
+      .ws-block.brand .ws-card p { color: rgba(233, 245, 255, 0.87); }
+      .ws-tagline {
+        margin: 0;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #7094b8;
+      }
+      .ws-kbw-media {
+        margin-top: 1rem;
+      }
+      .ws-footer-note {
+        margin-top: 2.3rem;
+        padding-top: 1.1rem;
+        border-top: 1px solid #d8e7f5;
+        color: #6f90b3;
+        font-size: 0.86rem;
+      }
+      .clone-shell {
+        border: 1px solid var(--line);
+        background: #070707;
+      }
+      .clone-hero {
+        position: relative;
+        min-height: 76vh;
+        border-bottom: 1px solid var(--line);
+        overflow: hidden;
+        --fx-x: 50%;
+        --fx-y: 50%;
+        --fx-strength: 0;
+        --fx-jitter: 0px;
+      }
+      .clone-hero video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.32;
+        filter: grayscale(1) contrast(1.18) brightness(0.76);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .clone-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 78% 44%, rgba(255,255,255,0.14), rgba(255,255,255,0) 52%),
+          radial-gradient(circle at 18% 50%, rgba(0,0,0,0.67), rgba(0,0,0,0) 52%),
+          linear-gradient(90deg, rgba(3,3,3,0.97) 0%, rgba(4,4,4,0.74) 34%, rgba(4,4,4,0.34) 100%);
+        pointer-events: none;
+        z-index: 1;
+      }
+      .clone-fx-layer,
+      .clone-fx-noise {
+        position: absolute;
+        inset: -1px;
+        pointer-events: none;
+      }
+      .clone-fx-layer {
+        z-index: 2;
+        mix-blend-mode: difference;
+        opacity: calc(var(--fx-strength) * 0.24);
+        transform: translate3d(var(--fx-jitter), calc(var(--fx-jitter) * -0.65), 0);
+        background:
+          radial-gradient(circle at var(--fx-x) var(--fx-y), rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.11) 20%, rgba(255,255,255,0.04) 42%, rgba(255,255,255,0.012) 60%, rgba(255,255,255,0) 84%),
+          repeating-linear-gradient(0deg, rgba(255,255,255,0.14) 0 1px, rgba(255,255,255,0) 1px 7px),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.12) 0 1px, rgba(255,255,255,0) 1px 7px);
+      }
+      .clone-fx-noise {
+        z-index: 3;
+        opacity: calc(var(--fx-strength) * 0.1);
+        transform: translateX(calc(var(--fx-jitter) * -0.35));
+        mix-blend-mode: soft-light;
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.08)),
+          repeating-linear-gradient(0deg, rgba(255,255,255,0.045) 0 1px, rgba(0,0,0,0.045) 1px 3px);
+        animation: cloneScan 4.2s linear infinite;
+      }
+      @keyframes cloneScan {
+        0% { background-position: 0 0, 0 0; }
+        100% { background-position: 0 0, 0 110px; }
+      }
+      .clone-content {
+        position: relative;
+        z-index: 4;
+        padding: 1.35rem;
+        max-width: 620px;
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .clone-mark {
+        margin: 0 0 1.1rem;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: #efefef;
+      }
+      .clone-title {
+        margin: 0.35rem 0 0;
+        font-size: clamp(1.47rem, 4.62vw, 3.01rem);
+        line-height: 0.98;
+        letter-spacing: -0.03em;
+        color: #f2f2f2;
+      }
+      .clone-title .line {
+        display: block;
+        white-space: nowrap;
+      }
+      .clone-trusted {
+        border-bottom: 1px solid var(--line);
+        padding: 0.8rem 1.2rem;
+        color: #b9b9b9;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .clone-logo-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border-bottom: 1px solid var(--line);
+      }
+      .clone-logo-cell {
+        min-height: 120px;
+        padding: 0.8rem 0.95rem;
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .clone-logo-cell:nth-child(2n) { border-right: 0; }
+      .clone-logo-cell img {
+        max-width: 88%;
+        max-height: 44px;
+        object-fit: contain;
+        filter: grayscale(1) brightness(0.8) contrast(1.06);
+        opacity: 0.9;
+        -webkit-user-drag: none;
+        user-select: none;
+      }
+      .recap-strip {
+        margin-top: 2.2rem;
+        border: 1px solid #c7ddef;
+        border-radius: 18px;
+        background: #ffffff;
+        padding: 0.9rem 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.7rem;
+      }
+      .recap-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+      .recap-chip {
+        border: 1px solid #c8ddf0;
+        border-radius: 999px;
+        background: #f4f9ff;
+        color: #2b5f92;
+        font-size: 0.74rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 0.38rem 0.72rem;
+      }
+      .recap-social {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+      }
+      .icon-btn {
+        width: 34px;
+        height: 34px;
+        border: 1px solid #c8ddf0;
+        border-radius: 999px;
+        background: #f4f9ff;
+        color: #2f6faa;
+        display: grid;
+        place-items: center;
+        padding: 0;
+      }
+      .icon-btn svg {
+        width: 15px;
+        height: 15px;
+        display: block;
+      }
+      .advisory-flow {
+        margin-top: 2rem;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        padding: 0;
+      }
+      .advisory-head small {
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 1.28rem;
+        color: #ffffff;
+        font-weight: 700;
+        position: relative;
+        z-index: 2;
+        padding: 0.2rem 0 0.8rem;
+        background: transparent;
+      }
+      .advisory-head h2,
+      .advisory-head p { display: none; }
+      .advisory-motion {
+        margin-top: 0.3rem;
+        position: relative;
+        height: 340vh;
+      }
+      .advisory-stage {
+        position: sticky;
+        top: 94px;
+        height: 78vh;
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        gap: 0.55rem;
+      }
+      .advisory-sequence {
+        position: relative;
+        height: 100%;
+      }
+      .advisory-step {
+        position: absolute;
+        inset: 0;
+        border: 1px solid #2b2b2b;
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 46%),
+          linear-gradient(180deg, #131313, #0d0d0d);
+        padding: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transform: translate3d(112%, 0, 0);
+        will-change: transform;
+      }
+      .advisory-step:first-child { transform: translate3d(0, 0, 0); }
+      .advisory-copy {
+        width: min(44vw, 560px);
+        position: relative;
+        z-index: 2;
+      }
+      .advisory-copy h3 {
+        margin: 0;
+        font-size: clamp(2rem, 4.6vw, 3.2rem);
+        letter-spacing: -0.02em;
+        color: #f2f2f2;
+        line-height: 1.02;
+      }
+      .advisory-copy p {
+        margin: 1rem 0 0;
+        color: #a7a7a7;
+        line-height: 1.58;
+        font-size: clamp(1.02rem, 1.6vw, 1.22rem);
+        max-width: 520px;
+      }
+      .advisory-step-meta {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.65rem;
+        margin-bottom: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 1.12rem;
+        color: #d6d6d6;
+        font-weight: 700;
+      }
+      .advisory-step-meta::before {
+        content: "";
+        width: 34px;
+        height: 1px;
+        background: #7a7a7a;
+      }
+      .advisory-step-num {
+        position: absolute;
+        left: 20%;
+        top: 50%;
+        transform: translate(-50%, -52%);
+        z-index: 1;
+        font-size: clamp(10rem, 20vw, 17rem);
+        line-height: 0.85;
+        letter-spacing: -0.05em;
+        color: rgba(248, 248, 248, 0.86);
+        font-weight: 700;
+        pointer-events: none;
+      }
+      .advisory-step.align-right .advisory-copy {
+        margin-left: auto;
+        margin-right: clamp(1.2rem, 5vw, 5.2rem);
+        text-align: left;
+      }
+      .advisory-step.align-right .advisory-copy p {
+        margin-left: 0;
+      }
+      .advisory-track-tag {
+        display: inline-block;
+        margin-top: 1.15rem;
+        border: 1px solid #4a4a4a;
+        border-radius: 999px;
+        background: rgba(20, 20, 20, 0.9);
+        padding: 0.33rem 0.78rem;
+        font-size: 0.92rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #cfcfcf;
+      }
+      .advisory-note {
+        margin-top: 1rem;
+        border-top: 1px solid #262626;
+        padding-top: 0.85rem;
+        color: #969696;
+        font-size: 0.86rem;
+      }
+      .portfolio-section {
+        margin-top: 3.6rem;
+        margin-bottom: 3.2rem;
+      }
+      .portfolio-title {
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #e6e6e6;
+        font-size: clamp(1.05rem, 1.7vw, 1.45rem);
+      }
+      .portfolio-grid {
+        margin-top: 2.8rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 1rem;
+        row-gap: 10rem;
+      }
+      .portfolio-item {
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        min-height: 0;
+        display: grid;
+        place-items: center;
+        padding: 0;
+      }
+      .portfolio-item img {
+        display: block;
+        max-width: 100%;
+        max-height: 64px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+      }
+      .portfolio-item img.scale-up {
+        transform: scale(1.3);
+        transform-origin: center;
+      }
+      .portfolio-item img.scale-bitlayer {
+        transform: scale(1.69);
+        transform-origin: center;
+      }
+      .portfolio-item img.scale-mid {
+        transform: scale(1.2);
+        transform-origin: center;
+      }
+      .portfolio-item img.scale-down {
+        transform: scale(0.6);
+        transform-origin: center;
+      }
+      .portfolio-item img.scale-small {
+        transform: scale(0.7);
+        transform-origin: center;
+      }
+      .site-footer {
+        margin-top: 1.6rem;
+        padding-top: 1rem;
+        border-top: 1px solid #252525;
+        color: #8e8e8e;
+        font-size: 0.86rem;
+        text-align: left;
+      }
+
+      .section-head { margin-bottom: 1rem; }
+      .section-head small { text-transform: uppercase; color: #92b3d7; letter-spacing: 0.06em; font-weight: 700; font-size: 0.74rem; }
+      .section-head h2 { margin: 0.35rem 0 0; font-size: clamp(1.6rem, 4vw, 2.2rem); letter-spacing: -0.02em; }
+      .section-head p { margin: 0.6rem 0 0; color: var(--muted); max-width: 740px; line-height: 1.6; }
+      .process-grid {
+        margin-top: 1.05rem;
+      }
+      .process-grid .card {
+        min-height: 140px;
+      }
+
+      .split {
+        margin-top: 1.2rem;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      .input, textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        background: #ffffff;
+        color: var(--text);
+        border-radius: 14px;
+        padding: 0.7rem 0.85rem;
+        font: inherit;
+      }
+      .input::placeholder, textarea::placeholder { color: #7f9dc0; }
+      .input:focus, textarea:focus { outline: none; border-color: #4ea7ff; box-shadow: 0 0 0 3px rgba(78, 167, 255, 0.16); }
+      textarea { min-height: 110px; resize: vertical; }
+      label { display: grid; gap: 0.4rem; font-size: 0.88rem; color: #b8d1ee; }
+      .form-grid { display: grid; gap: 0.75rem; grid-template-columns: 1fr; margin-top: 0.8rem; }
+      .dark-card { background: #2f6fa9; color: white; border-color: #6e9ec8; }
+      .dark-card p { color: rgba(255, 255, 255, 0.78); }
+      .dark-card .btn { border-color: #c5e3ff; background: #c5e3ff; color: #184b7c; width: 100%; justify-content: center; }
+
+      .contact-shell {
+        margin-top: 0.6rem;
+        border: 1px solid #2a2a2a;
+        border-radius: 30px;
+        padding: 1.3rem;
+        background:
+          radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0) 42%),
+          radial-gradient(circle at 0% 100%, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 45%),
+          linear-gradient(180deg, #111111, #090909);
+      }
+      .contact-shell .section-head h2 {
+        color: #f1f1f1;
+      }
+      .contact-shell .section-head p {
+        color: #aaaaaa;
+      }
+      .contact-shell .card {
+        box-shadow: none;
+      }
+      .contact-form-card {
+        border-color: #2f2f2f;
+        background: #141414;
+      }
+      .contact-shell label {
+        color: #c4c4c4;
+      }
+      .contact-shell .input,
+      .contact-shell textarea {
+        border-color: #303030;
+        background: #0d0d0d;
+        color: #ededed;
+      }
+      .contact-shell .input::placeholder,
+      .contact-shell textarea::placeholder {
+        color: #7f7f7f;
+      }
+      .contact-shell .input:focus,
+      .contact-shell textarea:focus {
+        border-color: #7a7a7a;
+        box-shadow: 0 0 0 3px rgba(160, 160, 160, 0.15);
+      }
+      .contact-shell .btn.primary {
+        background: #f0f0f0;
+        border-color: #f0f0f0;
+        color: #111111;
+      }
+      .contact-shell .btn.primary:hover {
+        background: #d6d6d6;
+      }
+      .contact-side-card {
+        border-color: #414141;
+        background: linear-gradient(165deg, #262626, #171717);
+        color: #f2f2f2;
+      }
+      .contact-side-card p {
+        color: rgba(242, 242, 242, 0.84);
+      }
+      .contact-side-card .btn {
+        border-color: #ececec;
+        background: #ececec;
+        color: #141414;
+        width: 100%;
+        justify-content: center;
+      }
+      .contact-shell footer {
+        border-top-color: #282828;
+        color: #8f8f8f;
+      }
+
+      footer { margin-top: 1.7rem; padding-top: 1.1rem; border-top: 1px solid var(--line); color: #6d8fb4; font-size: 0.86rem; }
+
+      @media (min-width: 700px) {
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        .form-grid { grid-template-columns: repeat(2, 1fr); }
+        .full { grid-column: 1 / -1; }
+        .split { grid-template-columns: 7fr 5fr; }
+        .advisory-copy { width: min(43vw, 560px); }
+        .advisory-step { padding: 1.35rem; }
+        .portfolio-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .scroll-story {
+          grid-template-columns: 5fr 7fr;
+          align-items: start;
+        }
+        .story-pin {
+          position: sticky;
+          top: 95px;
+        }
+        .unfold-cards {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .source-stage .unfold-cards {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 1rem;
+        }
+        .source-stage .asset-card {
+          min-height: 168px;
+        }
+        .format-head {
+          grid-template-columns: 5fr 7fr;
+          align-items: end;
+        }
+        .format-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .format-grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .ws-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .ws-grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .clone-content { padding: 1.8rem; }
+        .clone-logo-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .clone-logo-cell { min-height: 146px; }
+        .clone-logo-cell:nth-child(2n) { border-right: 1px solid var(--line); }
+        .clone-logo-cell:nth-child(4n) { border-right: 0; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .page,
+        .marquee-track,
+        .reveal,
+        .unfold-cards .asset-card {
+          animation: none !important;
+          transition: none !important;
+          transform: none !important;
+          opacity: 1 !important;
+        }
+        .advisory-motion { height: auto !important; }
+        .advisory-stage { position: static !important; height: auto !important; overflow: visible !important; }
+        .advisory-sequence { display: grid !important; gap: 0.85rem !important; }
+        .advisory-step {
+          position: static !important;
+          transform: none !important;
+          min-height: 56vh !important;
+          display: grid !important;
+        }
+        .advisory-step-num {
+          position: static !important;
+          transform: none !important;
+          margin: 0.5rem 0 !important;
+          font-size: clamp(4rem, 18vw, 7rem) !important;
+        }
+        .clone-fx-noise { animation: none !important; }
+        .hero-bg-video { display: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="container header-row">
+        <button class="brand" onclick="go('home')" aria-label="Go to home">
+          <img src="brand images/atlas name.png" alt="Atlas" />
+        </button>
+
+        <nav class="nav" id="desktopNav" aria-label="Primary"></nav>
+
+      </div>
+    </header>
+
+    <main class="page-wrap container">
+      <section id="app"></section>
+    </main>
+
+    <script>
+      const pages = [
+        ["home", "HOME"],
+        ["services", "SERVICES"],
+        ["portfolio", "PORTFOLIO"],
+        ["contact", "CONTACT"],
+      ];
+      const trustedLogos = [
+        { name: "Bitlayer", file: "6406dde53e750fb7b4e9bf60_el-wordmark2.png" },
+        { name: "Sui", file: "84432_82528_933.png" },
+        { name: "BNB", file: "BNB.png" },
+        { name: "DogeOS", file: "Dogeos-logo2.png" },
+        { name: "KBW", file: "KBW.png" },
+        { name: "Espresso", file: "Logo-for-Ghost-update-Dec-2025.svg" },
+        { name: "Solana", file: "Solana-SOL-New-Logo-Vector.svg-.png" },
+        { name: "Sonic", file: "Sonic.png" },
+        { name: "The Sandbox", file: "full-the-sandbox-logo.webp" },
+        { name: "Gaia", file: "gaia-logo-dark.png" },
+        { name: "Open Ledger", file: "image-Photoroom (2).png" }
+      ];
+      const portfolioWhiteLogos = [
+        "image 35.png",
+        "image 36.png",
+        "image 37.png",
+        "image 38.png",
+        "image 39.png",
+        "image 40.png",
+        "image 41.png",
+        "image 42.png",
+        "image 43.png",
+        "image 44.png",
+        "image 45.png",
+        "image 46.png",
+        "image 47.png",
+        "image 48.png",
+        "image 49.png",
+        "image 50.png"
+      ];
+      const portfolioScaleBitlayer = new Set(["image 35.png"]);
+      const portfolioScaleUp = new Set(["image 46.png"]);
+      const portfolioScaleMid = new Set(["image 36.png"]);
+      const portfolioScaleDown = new Set(["image 38.png"]);
+      const portfolioScaleSmall = new Set(["image 45.png", "image 40.png"]);
+
+      let page = "services";
+      let activeTab = "home";
+
+      function navMarkup(active) {
+        return pages
+          .map(([key, label]) => `<button class="${active === key ? "active" : ""}" onclick="go('${key}')">${label}</button>`)
+          .join("");
+      }
+
+      function homePage() {
+        const marqueeItems = [...trustedLogos, ...trustedLogos]
+          .map(
+            (logo) => `
+              <div class="logo-pill">
+                <img
+                  src="logo images/${logo.file}"
+                  alt="${logo.name} logo"
+                  loading="lazy"
+                  onerror="this.closest('.logo-pill').remove()"
+                />
+              </div>
+            `
+          )
+          .join("");
+
+        return `
+          <div class="page">
+            <section class="hero">
+              <div class="hero-center">
+                <h1>A Korea launch system that unfolds as you scroll.</h1>
+                <p class="lead">Atlas combines narrative, influencer distribution, event operations, and partner access into one tightly-run GTM engine for Web3 teams.</p>
+                <div class="stack-row">
+                  <button class="btn primary" onclick="go('contact')">Book a call</button>
+                  <button class="btn" onclick="go('services')">View services</button>
+                </div>
+                <div class="proof">
+                  <div><b>40+</b> projects since 2018</div>
+                  <div><b>700+</b> network</div>
+                  <div><b>KBW</b> access</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="scroll-story">
+              <article class="story-pin reveal">
+                <small class="tag">ATLAS GTM Stack</small>
+                <h2>Brand assets, channels, and network surfaces open in sequence.</h2>
+                <p>Instead of separate vendors, we run one connected motion: message architecture, distribution, and conversion loops across Korea.</p>
+              </article>
+
+              <div class="story-track">
+                <article class="story-step reveal">
+                  <b>Step 01</b>
+                  <h3>Message Layer</h3>
+                  <p>Positioning, narrative lanes, and launch angles localized for Korean media and communities.</p>
+                </article>
+                <article class="story-step reveal">
+                  <b>Step 02</b>
+                  <h3>Distribution Layer</h3>
+                  <p>PR push, KOL deployment, and social sequencing launched from one weekly execution board.</p>
+                </article>
+                <article class="story-step reveal">
+                  <b>Step 03</b>
+                  <h3>Activation Layer</h3>
+                  <p>Events, KBW opportunities, and partner intros converted into concrete meetings and on-ground outcomes.</p>
+                </article>
+                <article class="story-step reveal">
+                  <b>Step 04</b>
+                  <h3>Learning Layer</h3>
+                  <p>Performance reporting and next sprint decisions made quickly to compound launch momentum.</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="unfold-zone reveal">
+              <div class="unfold-head">
+                <small>Our Sources</small>
+                <h3>Atlas-owned execution sources that expand while you scroll.</h3>
+              </div>
+              <div class="unfold-cards reveal-group">
+                <article class="asset-card">
+                  <h4>KR Media Relations Pool</h4>
+                  <p>Editors, reporters, and contributor lanes for timely narrative placement.</p>
+                </article>
+                <article class="asset-card">
+                  <h4>KOL & Creator Roster</h4>
+                  <p>Segmented influencer roster by vertical, audience fit, and performance profile.</p>
+                </article>
+                <article class="asset-card">
+                  <h4>Event Production Pods</h4>
+                  <p>Meetup, side event, and conference operation teams ready for fast deployment.</p>
+                </article>
+                <article class="asset-card">
+                  <h4>Exchange & Wallet Bridges</h4>
+                  <p>Practical intros into ecosystem players that matter for launch distribution.</p>
+                </article>
+                <article class="asset-card">
+                  <h4>Community Operators</h4>
+                  <p>Bilingual moderators and campaign managers for sustained community velocity.</p>
+                </article>
+                <article class="asset-card">
+                  <h4>Analytics & Reporting Layer</h4>
+                  <p>Weekly KPI snapshots with execution feedback loops and next-action plans.</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="trusted-wrap">
+              <small>Trusted by</small>
+              <div class="marquee">
+                <div class="marquee-track">
+                  ${marqueeItems}
+                </div>
+              </div>
+            </section>
+          </div>
+        `;
+      }
+
+      function servicesPage() {
+        const portfolioItems = portfolioWhiteLogos
+          .map((file, i) => {
+            const scaleClass = portfolioScaleBitlayer.has(file)
+              ? "scale-bitlayer"
+              : portfolioScaleUp.has(file)
+                ? "scale-up"
+              : portfolioScaleMid.has(file)
+                ? "scale-mid"
+              : portfolioScaleDown.has(file)
+                ? "scale-down"
+              : portfolioScaleSmall.has(file)
+                ? "scale-small"
+                : "";
+            return `
+              <article class="portfolio-item">
+                <img
+                  class="${scaleClass}"
+                  src="portfolio_white/${file}"
+                  alt="Portfolio logo ${i + 1}"
+                  loading="lazy"
+                  onerror="this.closest('.portfolio-item').remove()"
+                />
+              </article>
+            `
+          })
+          .join("");
+
+        return `
+          <div class="page">
+            <section class="clone-shell reveal">
+              <section class="clone-hero">
+                <video
+                  src="brand images/atlas video 2.mp4"
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  preload="metadata"
+                  aria-hidden="true"
+                ></video>
+                <div class="clone-fx-layer" aria-hidden="true"></div>
+                <div class="clone-fx-noise" aria-hidden="true"></div>
+                <div class="clone-content">
+                  <h1 class="clone-title">
+                    <span class="line">Your Strategic Gateway</span>
+                    <span class="line">To The Korean Market</span>
+                  </h1>
+                </div>
+              </section>
+              <section class="clone-mosaic" id="logoMosaic" aria-label="Trusted logos mosaic"></section>
+            </section>
+
+            <section id="advisory-tracks" class="advisory-flow reveal">
+              <div class="advisory-motion">
+                <div class="advisory-stage">
+                  <div class="advisory-head">
+                    <small>ADVISSORY TRACKS</small>
+                  </div>
+                  <div class="advisory-sequence">
+                    <article class="advisory-step align-right">
+                      <span class="advisory-step-num" aria-hidden="true">1</span>
+                      <div class="advisory-copy">
+                        <p class="advisory-step-meta">Track 01</p>
+                        <h3>PR & MEDIA</h3>
+                        <p>With deep ties to Korea’s most influential media platforms, we craft narratives that resonate locally and amplify your brand across both Web2 and Web3.</p>
+                        <span class="advisory-track-tag">Narrative Positioning</span>
+                      </div>
+                    </article>
+
+                    <article class="advisory-step align-right">
+                      <span class="advisory-step-num" aria-hidden="true">2</span>
+                      <div class="advisory-copy">
+                        <p class="advisory-step-meta">Track 02</p>
+                        <h3>MARKETING & MANAGEMENT</h3>
+                        <p>We activate top Korean KOLs across major platforms to craft and execute tailored campaigns, driving meaningful engagement and continuously optimizing for lasting impact.</p>
+                        <span class="advisory-track-tag">KOL Systems</span>
+                      </div>
+                    </article>
+
+                    <article class="advisory-step align-right">
+                      <span class="advisory-step-num" aria-hidden="true">3</span>
+                      <div class="advisory-copy">
+                        <p class="advisory-step-meta">Track 03</p>
+                        <h3>KOREA BLOCKCHAIN WEEK</h3>
+                        <p>We create and manage tailored events that grow brand presence and foster meaningful engagement and provide exposure at Korea’s flagship web3 event, Korea Blockchain Week.</p>
+                        <span class="advisory-track-tag">Event Strategy</span>
+                      </div>
+                    </article>
+
+                    <article class="advisory-step align-right">
+                      <span class="advisory-step-num" aria-hidden="true">4</span>
+                      <div class="advisory-copy">
+                        <p class="advisory-step-meta">Track 04</p>
+                        <h3>PARTNERSHIP INTROS</h3>
+                        <p>We facilitate targeted introductions to top institutions, companies, and key stakeholders through our network of 700+ Web3 and Web2 companies across Korea and beyond.</p>
+                        <span class="advisory-track-tag">Network Access</span>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+              </div>
+
+            </section>
+
+            <section id="portfolio-section" class="portfolio-section reveal">
+              <h2 class="portfolio-title">Trusted By</h2>
+              <div class="portfolio-grid">
+                ${portfolioItems}
+              </div>
+            </section>
+
+            <footer class="site-footer">© 2026 ATLAS. All rights reserved.</footer>
+          </div>
+        `;
+      }
+
+      function workPage() {
+        return `
+          <div class="page">
+            <div class="section-head">
+              <small>03 / Work</small>
+              <h2>Selected launches and campaigns in Korea.</h2>
+              <div class="stack-row" style="justify-content:flex-start;">
+                <button class="btn primary" onclick="go('contact')">Get a proposal</button>
+              </div>
+            </div>
+            <section class="grid grid-3">
+              ${[
+                ["Bitlayer", ["PR", "Partnerships"], ["Local narrative", "Media placements", "Ecosystem intros"]],
+                ["Open Ledger", ["KOL", "PR"], ["KOL execution", "Weekly reporting", "Korea community"]],
+                ["Recall", ["Events", "KBW"], ["Event moments", "On-site ops", "Sponsor options"]],
+              ]
+                .map(
+                  ([name, tags, bullets]) => `
+                    <article class="card">
+                      <h3>${name}</h3>
+                      <p>${tags.map((t) => `<span class="tag" style="margin-right:.35rem;">${t}</span>`).join("")}</p>
+                      <p>${bullets.map((b) => `• ${b}`).join("<br>")}</p>
+                    </article>
+                  `
+                )
+                .join("")}
+            </section>
+          </div>
+        `;
+      }
+
+      function processPage() {
+        return `
+          <div class="page">
+            <div class="section-head">
+              <small>04 / Process</small>
+              <h2>Simple, fast execution with a tight feedback loop.</h2>
+              <div class="stack-row" style="justify-content:flex-start;">
+                <button class="btn primary" onclick="go('contact')">Start a kickoff</button>
+              </div>
+            </div>
+            <section class="grid grid-4">
+              ${[
+                ["01", "Discover", "Goals, timeline, target audience"],
+                ["02", "Plan", "Channels, deliverables, KPIs"],
+                ["03", "Execute", "PR, KOL, events, and ops"],
+                ["04", "Report", "Weekly updates and next actions"],
+              ]
+                .map(([step, title, desc]) => `<article class="card"><span class="tag">${step}</span><h3 style="margin-top:.5rem;">${title}</h3><p>${desc}</p></article>`)
+                .join("")}
+            </section>
+          </div>
+        `;
+      }
+
+      function contactPage() {
+        return `
+          <div class="page contact-shell">
+            <div class="section-head">
+              <h2>Share your timeline and priorities.</h2>
+              <p>We’ll send a Korea GTM plan with clear scope and deliverables.</p>
+              <div class="stack-row" style="justify-content:flex-start;">
+                <button class="btn" onclick="go('services')">Review services</button>
+              </div>
+            </div>
+
+            <section class="split contact-split">
+              <article class="card contact-form-card">
+                <h3>Request a proposal</h3>
+                <div class="form-grid">
+                  <label>Name <input class="input" placeholder="Your name" /></label>
+                  <label>Email <input class="input" placeholder="you@company.com" /></label>
+                  <label class="full">Company / Project <input class="input" placeholder="Project name" /></label>
+                  <label class="full">Timeline <input class="input" placeholder="e.g., March launch" /></label>
+                  <label class="full">Message <textarea placeholder="What do you want to achieve in Korea?"></textarea></label>
+                </div>
+                <div class="stack-row" style="justify-content:flex-start;">
+                  <button class="btn primary">Send</button>
+                  <button class="btn">Email us</button>
+                </div>
+              </article>
+
+              <article class="card contact-side-card">
+                <h3>Book a call</h3>
+                <button class="btn" style="margin-top: 1rem;">Open scheduling</button>
+                <p style="margin-top: .8rem; font-size: .8rem;">Or email: hello@atlas.example</p>
+              </article>
+            </section>
+
+            <footer>© ${new Date().getFullYear()} ATLAS. All rights reserved.</footer>
+          </div>
+        `;
+      }
+
+      function initScrollReveal() {
+        const targets = document.querySelectorAll(".reveal, .reveal-group");
+        if (!targets.length) return;
+
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          targets.forEach((el) => el.classList.add("inview"));
+          return;
+        }
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("inview");
+                observer.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.2, rootMargin: "0px 0px -8% 0px" }
+        );
+
+        targets.forEach((el) => observer.observe(el));
+      }
+
+      function initMarqueeDrag() {
+        const marquees = document.querySelectorAll(".marquee");
+        marquees.forEach((marquee) => {
+          const track = marquee.querySelector(".marquee-track");
+          if (!track) return;
+
+          let offset = 0;
+          let dragging = false;
+          let lastX = 0;
+          const speed = 0.33;
+
+          const normalize = () => {
+            const half = track.scrollWidth / 2;
+            if (!half) return;
+            while (offset >= half) offset -= half;
+            while (offset < 0) offset += half;
+          };
+
+          const animate = () => {
+            if (!marquee.isConnected) return;
+            if (!dragging) {
+              offset += speed;
+              normalize();
+              track.style.transform = `translateX(${-offset}px)`;
+            }
+            requestAnimationFrame(animate);
+          };
+
+          marquee.addEventListener("pointerdown", (e) => {
+            dragging = true;
+            lastX = e.clientX;
+            marquee.classList.add("dragging");
+            marquee.setPointerCapture(e.pointerId);
+          });
+
+          marquee.addEventListener("pointermove", (e) => {
+            if (!dragging) return;
+            const dx = e.clientX - lastX;
+            lastX = e.clientX;
+            offset -= dx;
+            normalize();
+            track.style.transform = `translateX(${-offset}px)`;
+          });
+
+          const endDrag = () => {
+            dragging = false;
+            marquee.classList.remove("dragging");
+          };
+
+          marquee.addEventListener("pointerup", endDrag);
+          marquee.addEventListener("pointercancel", endDrag);
+          marquee.addEventListener("lostpointercapture", endDrag);
+
+          requestAnimationFrame(animate);
+        });
+      }
+
+      function initLogoMosaic() {
+        const root = document.getElementById("logoMosaic");
+        if (!root) return;
+
+        const width = root.clientWidth;
+        const height = root.clientHeight;
+        if (!width || !height) return;
+
+        const source = [...trustedLogos, ...trustedLogos, ...trustedLogos];
+        const items = source.slice(0, Math.min(28, source.length * 2)).map((logo) => {
+          const el = document.createElement("div");
+          el.className = "mosaic-item";
+
+          const img = document.createElement("img");
+          img.src = `logo images/${logo.file}`;
+          img.alt = `${logo.name} logo`;
+          img.loading = "lazy";
+          img.onerror = () => el.remove();
+          el.appendChild(img);
+          root.appendChild(el);
+
+          const w = 120 + Math.random() * 120;
+          const h = 30 + Math.random() * 34;
+          const x = Math.random() * Math.max(1, width - w);
+          const y = Math.random() * Math.max(1, height - h);
+          const vx = (Math.random() - 0.5) * 0.16;
+          const vy = (Math.random() - 0.5) * 0.16;
+          const phase = Math.random() * Math.PI * 2;
+
+          return { el, x, y, w, h, vx, vy, phase };
+        });
+
+        let mouseX = -9999;
+        let mouseY = -9999;
+        const radius = 210;
+
+        const onMove = (e) => {
+          const rect = root.getBoundingClientRect();
+          mouseX = e.clientX - rect.left;
+          mouseY = e.clientY - rect.top;
+        };
+        const onLeave = () => {
+          mouseX = -9999;
+          mouseY = -9999;
+        };
+
+        root.addEventListener("pointermove", onMove);
+        root.addEventListener("pointerleave", onLeave);
+
+        const tick = (t) => {
+          if (!root.isConnected) return;
+
+          items.forEach((it) => {
+            it.x += it.vx + Math.sin(t * 0.00045 + it.phase) * 0.06;
+            it.y += it.vy + Math.cos(t * 0.00035 + it.phase) * 0.05;
+
+            if (it.x <= 0 || it.x >= width - it.w) it.vx *= -1;
+            if (it.y <= 0 || it.y >= height - it.h) it.vy *= -1;
+
+            it.x = Math.max(0, Math.min(width - it.w, it.x));
+            it.y = Math.max(0, Math.min(height - it.h, it.y));
+
+            const cx = it.x + it.w / 2;
+            const cy = it.y + it.h / 2;
+            const dist = Math.hypot(mouseX - cx, mouseY - cy);
+            const f = Math.max(0, 1 - dist / radius);
+
+            const blur = 1.3 - f * 1.28;
+            const gray = 0.2 - f * 0.2;
+            const op = 0.58 + f * 0.42;
+            const scale = 1 + f * 0.08;
+
+            it.el.style.width = `${it.w}px`;
+            it.el.style.height = `${it.h}px`;
+            it.el.style.transform = `translate3d(${it.x}px, ${it.y}px, 0) scale(${scale})`;
+            it.el.style.opacity = op.toFixed(3);
+            it.el.style.filter = `grayscale(${Math.max(0, gray).toFixed(3)}) blur(${Math.max(0, blur).toFixed(2)}px) brightness(${(1.15 + f * 0.2).toFixed(2)})`;
+          });
+
+          requestAnimationFrame(tick);
+        };
+
+        requestAnimationFrame(tick);
+      }
+
+      function initCloneHeroFx() {
+        const hero = document.querySelector(".clone-hero");
+        if (!hero) return;
+
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          hero.style.setProperty("--fx-strength", "0");
+          return;
+        }
+
+        let targetX = 0.5;
+        let targetY = 0.5;
+        let x = 0.5;
+        let y = 0.5;
+        let strength = 0;
+        let targetStrength = 0;
+        let hovering = false;
+        let lastMoveAt = 0;
+        const idleDelayMs = 420;
+
+        const updateTarget = (clientX, clientY) => {
+          const rect = hero.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+          targetX = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+          targetY = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+          hovering = true;
+          lastMoveAt = performance.now();
+          targetStrength = 0.94;
+        };
+
+        hero.addEventListener("pointermove", (e) => updateTarget(e.clientX, e.clientY));
+        hero.addEventListener("pointerenter", (e) => updateTarget(e.clientX, e.clientY));
+        hero.addEventListener("pointerdown", (e) => {
+          updateTarget(e.clientX, e.clientY);
+          targetStrength = 1.04;
+        });
+        hero.addEventListener("pointerleave", () => {
+          hovering = false;
+          targetStrength = 0;
+        });
+
+        const tick = () => {
+          if (!hero.isConnected) return;
+
+          x += (targetX - x) * 0.16;
+          y += (targetY - y) * 0.16;
+          strength += (targetStrength - strength) * 0.14;
+          const idle = performance.now() - lastMoveAt > idleDelayMs;
+          const restingTarget = hovering && !idle ? 0.9 : 0;
+          targetStrength += (restingTarget - targetStrength) * 0.08;
+
+          const jitter = (Math.random() - 0.5) * (1.1 + strength * 7.8);
+
+          hero.style.setProperty("--fx-x", `${(x * 100).toFixed(2)}%`);
+          hero.style.setProperty("--fx-y", `${(y * 100).toFixed(2)}%`);
+          hero.style.setProperty("--fx-strength", strength.toFixed(3));
+          hero.style.setProperty("--fx-jitter", `${jitter.toFixed(2)}px`);
+
+          requestAnimationFrame(tick);
+        };
+
+        requestAnimationFrame(tick);
+      }
+
+      function initAdvisoryTrackMotion() {
+        const motion = document.querySelector(".advisory-motion");
+        if (!motion) return;
+
+        const cards = [...motion.querySelectorAll(".advisory-step")];
+        if (!cards.length) return;
+
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          cards.forEach((card) => {
+            card.style.transform = "translate3d(0, 0, 0)";
+          });
+          return;
+        }
+
+        const count = cards.length;
+        const stepSize = 1 / Math.max(1, count - 1);
+        const startDelay = 0.24;
+
+        const tick = () => {
+          if (!motion.isConnected) return;
+
+          const rect = motion.getBoundingClientRect();
+          const total = Math.max(1, rect.height - window.innerHeight);
+          const rawProgress = Math.max(0, Math.min(1, -rect.top / total));
+          const progress = Math.max(0, Math.min(1, (rawProgress - startDelay) / (1 - startDelay)));
+
+          cards.forEach((card, index) => {
+            let x = 0;
+            if (index === 0) {
+              x = 0;
+            } else {
+              const start = (index - 1) * stepSize;
+              const end = index * stepSize;
+              if (progress <= start) {
+                x = 112;
+              } else if (progress >= end) {
+                x = 0;
+              } else {
+                const t = (progress - start) / Math.max(0.0001, end - start);
+                x = (1 - t) * 112;
+              }
+            }
+            card.style.transform = `translate3d(${x.toFixed(2)}%, 0, 0)`;
+            card.style.zIndex = String(50 + index);
+          });
+
+          requestAnimationFrame(tick);
+        };
+
+        requestAnimationFrame(tick);
+      }
+
+      function render() {
+        const app = document.getElementById("app");
+        document.getElementById("desktopNav").innerHTML = navMarkup(activeTab);
+
+        const map = {
+          services: servicesPage,
+          contact: contactPage,
+        };
+        app.innerHTML = (map[page] || servicesPage)();
+        initAdvisoryTrackMotion();
+        initCloneHeroFx();
+        initScrollReveal();
+        initMarqueeDrag();
+        initLogoMosaic();
+      }
+
+      function scrollToKbwSection(smooth = true) {
+        const kbwSection = document.getElementById("kbw-access-section");
+        if (!kbwSection) return;
+        kbwSection.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+      }
+
+      function scrollToAdvisoryTracks(smooth = true) {
+        const advisory = document.getElementById("advisory-tracks");
+        if (!advisory) return;
+        advisory.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+      }
+
+      function scrollToPortfolioSection(smooth = true) {
+        const portfolio = document.getElementById("portfolio-section");
+        if (!portfolio) return;
+        const y = window.scrollY + portfolio.getBoundingClientRect().top - 120;
+        window.scrollTo({ top: Math.max(0, y), behavior: smooth ? "smooth" : "auto" });
+      }
+
+      function go(next) {
+        if (next === "home") {
+          page = "services";
+          activeTab = next;
+          render();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
+
+        if (next === "services") {
+          page = "services";
+          activeTab = next;
+          render();
+          requestAnimationFrame(() => scrollToAdvisoryTracks(true));
+          return;
+        }
+
+        if (next === "portfolio") {
+          page = "services";
+          activeTab = next;
+          render();
+          requestAnimationFrame(() => scrollToPortfolioSection(true));
+          return;
+        }
+
+        page = next === "contact" ? "contact" : "services";
+        activeTab = next;
+        render();
+      }
+
+      window.go = go;
+      render();
+    </script>
+  </body>
+</html>
